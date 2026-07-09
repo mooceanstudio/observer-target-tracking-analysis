@@ -2,6 +2,7 @@
 ### Continuous Time-Series Cross-Correlation & Group-Level Statistics — Pipeline Demonstration
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mooceanstudio/observer-target-tracking-analysis/blob/main/tracking_crosscorr_analysis.ipynb)
+&nbsp;**[Project presentation page →](https://tracking_crosscorr_analysis.pagelet.host/)**
 
 A complete, reproducible Python pipeline for a Human–Computer Interaction study
 design: **28 observers** (15 Test / 13 Control) continuously rate **6 target
@@ -34,6 +35,7 @@ target.
 |---|---|
 | `tracking_crosscorr_analysis.ipynb` | Main notebook — every step explained, all cells executed with visible outputs and figures |
 | `tracking_crosscorr_analysis.py` | Mirror production script, **auto-exported** from the notebook via `jupyter nbconvert --to script` (never hand-edited, so it cannot diverge) |
+| `tracking_crosscorr_analysis.html` | Self-contained presentation page — deployed live at [tracking_crosscorr_analysis.pagelet.host](https://tracking_crosscorr_analysis.pagelet.host/) |
 | `requirements.txt` | Pinned dependency manifest |
 | `data/raw/T1.csv … T6.csv` | Simulated raw trial files (regenerated deterministically by the notebook) |
 | `data/synthetic_ground_truth.csv` | The hidden per-observer parameters used for validation |

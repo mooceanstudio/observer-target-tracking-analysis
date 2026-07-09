@@ -4,7 +4,7 @@
 # # Observer–Target Tracking Alignment
 # ## Continuous Time-Series Cross-Correlation & Group-Level Statistics
 # 
-# **Repository:** [github.com/mooceanstudio/observer-target-tracking-analysis](https://github.com/mooceanstudio/observer-target-tracking-analysis)
+# **Repository:** [github.com/mooceanstudio/observer-target-tracking-analysis](https://github.com/mooceanstudio/observer-target-tracking-analysis) &nbsp;·&nbsp; **Project presentation:** [tracking_crosscorr_analysis.pagelet.host](https://tracking_crosscorr_analysis.pagelet.host/)
 # [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mooceanstudio/observer-target-tracking-analysis/blob/main/tracking_crosscorr_analysis.ipynb)
 # 
 # > ⚠️ **This is a demonstration on SIMULATED (sample) data — not the study's real data.** The dataset is generated in Section 3 to match the study design exactly (28 observers, 6 trials, 1000 ms sampling) so the full pipeline can be shown working end-to-end. All numerical results below describe the simulated data only. See "Data used in this demonstration" for why simulation makes the pipeline *more* verifiable, and Section 12 for how the real tracking files drop in.
@@ -543,6 +543,7 @@ print("Re-running this notebook top-to-bottom reproduces this hash exactly.")
 # **To run on the real study data:** place the tracking files in `data/raw/`, adapt only the ingest cell (Section 4) to their file format, and skip Sections 3 & 8 (simulation and ground-truth validation). Tiers 1–3 run unchanged.
 # 
 # **Code, data, and outputs:** [github.com/mooceanstudio/observer-target-tracking-analysis](https://github.com/mooceanstudio/observer-target-tracking-analysis)
+# **Project presentation page:** [tracking_crosscorr_analysis.pagelet.host](https://tracking_crosscorr_analysis.pagelet.host/)
 # 
 # ### References
 # 
