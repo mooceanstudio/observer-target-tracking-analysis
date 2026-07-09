@@ -33,6 +33,12 @@
 # 
 # *Runs in local Jupyter or Google Colab — cell 1 installs any missing dependency automatically. In Colab, generated files live in the session's working directory (`/content`).*
 
+# ## 1. Dependencies & setup
+# 
+# The first cell makes the notebook self-sufficient: it checks each required library and installs anything missing (on Google Colab only `pingouin` is usually absent; locally, `pip install -r requirements.txt` does the same job).
+# 
+# The second cell fixes the **random seed** — the single most important line for reproducibility. Every random draw in this notebook flows from `RNG_SEED = 42`, so every rerun, on any machine, produces bit-identical data frames. Library versions are printed so any environment difference is immediately visible.
+
 # In[1]:
 
 
@@ -92,6 +98,10 @@ for name, mod in [("numpy", np), ("pandas", pd), ("scipy", scipy),
                   ("statsmodels", statsmodels), ("pingouin", pg)]:
     print(f"{name:<12} {mod.__version__}")
 
+
+# ## 2. Study configuration
+# 
+# Every design constant from the brief is encoded once, here, and referenced everywhere else — nothing is hard-coded downstream. The `assert` guarantees the lag grid has **exactly 16 steps** (5 negative + zero + 10 positive); if anyone edits the window, the notebook stops rather than silently computing the wrong grid.
 
 # In[3]:
 
@@ -175,6 +185,12 @@ print("Wrote raw trial files (trial lengths in s):",
       dict(zip(target_ids, trial_lengths.tolist())))
 
 
+# ## 4. Ingesting the raw tracking files
+# 
+# All trial files are read into a dictionary keyed by Target ID. Each file holds one trial: a `time_s` column, the target's rating stream, and one column per observer — one row per 1000 ms.
+# 
+# **This is the only cell that changes for the real study data**: adapt the read logic to the real files' format and everything downstream runs unmodified.
+
 # In[5]:
 
 
@@ -184,6 +200,8 @@ print("Wrote raw trial files (trial lengths in s):",
 trials = {tid: pd.read_csv(DATA_DIR / f"{tid}.csv") for tid in target_ids}
 trials["T1"].iloc[:5, :6]     # preview: time, target, first observers
 
+
+# **Figure 1** shows what one trial looks like: the Test observer's trace (blue) follows the target (dark grey) closely with a short delay, while the Control observer's trace (green) lags further behind and wanders more — the two effects the pipeline is built to quantify.
 
 # In[6]:
 
@@ -248,6 +266,12 @@ print(f"  sessions attenuated by zero-filling: "
       f"{(comp['zero_filled'] < comp['omitted']).mean():.0%}")
 
 
+# ## 6. Computing all 2,688 cross-correlations
+# 
+# Three nested loops — 6 targets × 28 observers × 16 lags — apply `lagged_correlation` to every combination and collect the results in **long format**: one row per (observer, target, lag), with the correlation `r`, its p-value, and `n_rows_used` (how many paired seconds survived the boundary omission at that shift — note how it shrinks as |lag| grows).
+# 
+# The zero-lag rows of this table *are* Tier 1 (the baseline Pearson values); the full 16-lag grid per session is Tier 2.
+
 # In[8]:
 
 
@@ -268,6 +292,8 @@ n_sessions = all_lags.groupby(["observer_id", "target_id"]).ngroups
 print(f"{n_sessions} sessions x {len(LAGS)} lags = {len(all_lags)} cross-correlations")
 all_lags.head(8)
 
+
+# **Figure 2** plots one dyad's full cross-correlation function — the 16 coefficients against their lags. The curve rises to a clear peak and falls away: the peak's height is that observer's **Peak r** (ceiling alignment) and its position is their **Personalised Latency Delay**. For this dyad the recovered peak sits exactly on the simulated observer's true lag.
 
 # In[9]:
 
@@ -291,6 +317,16 @@ ax.set(xlabel="Lag (s)  [positive = observer trails target]",
 plt.tight_layout()
 plt.show()
 
+
+# ## 7. Peak extraction & the Master Metrics Sheet
+# 
+# For each of the 168 sessions, the 16-lag grid is reduced to the three session metrics the brief requires:
+# 
+# - **Baseline Pearson r** — the coefficient at lag 0 (Tier 1);
+# - **Peak r** — the coefficient with the **maximum absolute value** across the 16 lags (so a strong negative correlation counts as a stronger peak than a weak positive one);
+# - **Peak lag** — the shift, in seconds, where that peak occurs.
+# 
+# These are merged with the group assignments and trial lengths into the **Master Metrics Sheet — exactly 168 rows, one per observer–target pairing** (enforced by an `assert`) — and saved to `outputs/master_metrics_sheet.csv`.
 
 # In[10]:
 
@@ -325,6 +361,12 @@ master.to_csv(OUT_DIR / "master_metrics_sheet.csv", index=False)
 master.head(12)
 
 
+# ## 8. Validation against the known ground truth
+# 
+# Because the data are simulated, we can do something impossible with real data: check the pipeline's answers against the truth. Each simulated observer was created with a hidden true lag; here we compare it with the lag the pipeline *recovered* (the modal Peak lag across the observer's 6 trials).
+# 
+# Expected pattern: near-perfect recovery, with the occasional 1-second slip toward zero for the noisiest observers — a known property of correlating smooth signals under heavy noise, not a pipeline error. *(This section is removed for the real-data run — there is no ground truth to check against.)*
+
 # In[11]:
 
 
@@ -352,6 +394,8 @@ check.T
 # 2. **Latency** — Peak lag in seconds
 # 
 # Main effects and the Group × Target interaction are reported with *F*-statistics, degrees of freedom, and exact *p*-values. A complementary **linear mixed-effects model** (random intercept per observer, respecting the nested repeated-measures design) is fitted as a robustness check.
+
+# **Figure 3** previews the group comparison before any formal test: the Test group's mean cross-correlation function peaks higher (stronger alignment) and earlier (shorter latency) than the Control group's. The ANOVA below quantifies whether these visible differences are statistically significant.
 
 # In[12]:
 
@@ -400,6 +444,10 @@ print("Latency (Peak lag, s):")
 display(aov_lag)
 
 
+# **Reading the ANOVA tables above:** each row is one effect — `group` (the Test-vs-Control main effect), `target` (the within-subjects main effect across the 6 trials), and their `Interaction` (does the group difference vary by target?). `F`, `DF1`/`DF2`, and `p_unc` are the F-statistic, degrees of freedom, and exact p-value the brief requires; `np2` is partial eta-squared (effect size).
+# 
+# The **linear mixed-effects model** below is the complementary approach the brief lists as an alternative. Its *random intercept per observer* explicitly models the fact that each observer contributes 6 non-independent rows (trials nested within observers). Agreement between the two models makes the group conclusion robust to the choice of method.
+
 # In[14]:
 
 
@@ -412,6 +460,10 @@ lmm = smf.mixedlm("z_peak_r ~ group", stats_df,
                   groups=stats_df["observer"]).fit(reml=True)
 print(lmm.summary())
 
+
+# ## 10. APA-style publication-ready tables
+# 
+# The raw model output is reformatted to APA conventions — *F*(df1, df2) = value, *p* = .xxx (three decimals, no leading zero; *p* < .001 below that threshold) — plus group descriptive statistics (M, SD). Both tables are saved to `outputs/` as CSVs ready to paste into a manuscript.
 
 # In[15]:
 
@@ -450,6 +502,10 @@ descriptives.to_csv(OUT_DIR / "group_descriptives.csv")
 display(apa_table)
 display(descriptives)
 
+
+# ## 11. Technical verification
+# 
+# Structural checks assert every hard requirement — 168 master-sheet rows, 2,688 correlations, the exact −5…+10 s lag grid, no missing cells — and the cell prints an **MD5 checksum** of the Master Metrics Sheet. Re-running the notebook (or the mirror `.py` script) must reproduce this checksum exactly; matching hashes are proof of bit-identical outputs.
 
 # In[16]:
 
