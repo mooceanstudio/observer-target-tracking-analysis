@@ -1,0 +1,7 @@
+DV,Effect,F,df,p,partial eta2,APA report
+Alignment (Fisher-z Peak r),group,384.64,"1, 26",< .001,0.937,"F(1, 26) = 384.64, p < .001"
+Alignment (Fisher-z Peak r),target,32.12,"5, 130",< .001,0.553,"F(5, 130) = 32.12, p < .001"
+Alignment (Fisher-z Peak r),Interaction,0.72,"5, 130",= .606,0.027,"F(5, 130) = 0.72, p = .606"
+"Latency (Peak lag, s)",group,54.54,"1, 26",< .001,0.677,"F(1, 26) = 54.54, p < .001"
+"Latency (Peak lag, s)",target,3.04,"5, 130",= .012,0.105,"F(5, 130) = 3.04, p = .012"
+"Latency (Peak lag, s)",Interaction,3.33,"5, 130",= .007,0.113,"F(5, 130) = 3.33, p = .007"

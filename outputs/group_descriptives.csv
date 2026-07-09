@@ -1,0 +1,5 @@
+,Baseline Pearson r,Baseline Pearson r,Peak r,Peak r,Peak lag (s),Peak lag (s)
+,mean,std,mean,std,mean,std
+Group,,,,,,
+Control,0.865,0.113,0.968,0.013,4.808,1.424
+Test,0.965,0.035,0.991,0.004,2.089,0.932
